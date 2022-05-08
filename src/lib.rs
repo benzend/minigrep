@@ -3,7 +3,7 @@ use std::fs;
 use std::env;
 
 
-const FLAG: &str = "f-";
+const FLAG: &str = "__";
 const READ_FILE_FLAG: &str = "read_file";
 const CHECK_IF_FILE_EXISTS_FLAG: &str = "check_file";
 const SEARCH_FILE: &str = "search_file";
