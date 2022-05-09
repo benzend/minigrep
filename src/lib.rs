@@ -109,24 +109,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         ::read_to_string(config.filename)
         .expect("file to exist");
 
-      if config.case_sensitive {
-        let found = search(&config.query, &contents);
-        if found.len() > 0 {
-          for line in found {
-            println!("{}", line);
-          }
-        } else {
-          println!("Couldn't find any matching text '{}'", &config.query);
+      let found = search(&config.query, &contents, config.case_sensitive);
+
+      if found.len() > 0 {
+        for line in found {
+          println!("{}", line);
         }
       } else {
-        let found = search_case_insensitive(&config.query, &contents);
-        if found.len() > 0 {
-          for line in found {
-            println!("{}", line);
-          }
-        } else {
-          println!("Couldn't find any matching text '{}'", &config.query);
-        }
+        println!("Couldn't find any matching text '{}'", &config.query);
       }
     }
   } else {
@@ -160,7 +150,7 @@ Rust:
 safe, fast, productive.
 Pick three.";
 
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+        assert_eq!(vec!["safe, fast, productive."], search(query, contents, true));
     }
     
     #[test]
@@ -171,7 +161,7 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-      assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+      assert_eq!(vec!["safe, fast, productive."], search(query, contents, true));
     }
 
     #[test]
@@ -182,34 +172,29 @@ Rust:
 safe, fast, productive.
 Pick three.
 Duct tape.";
-      assert_eq!(vec!["safe, fast, productive.", "Duct tape."], search_case_insensitive(query, contents));
+      assert_eq!(vec!["safe, fast, productive.", "Duct tape."], search(query, contents, false));
     }
 }
 
-pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
+pub fn search<'a>(query: &str, contents: &'a str, case_sensitive: bool) -> Vec<&'a str> {
+  let mut results = Vec::new();
 
+  if !case_sensitive {
+    let query = query.to_lowercase();
+
+    for line in contents.lines() {
+      if line.to_lowercase().contains(&query) {
+        results.push(line);
+      }
+    }
+  } else {
     for line in contents.lines() {
         if line.contains(query) {
             results.push(line);
         }
     }
-    
-    results
-}
-
-pub fn search_case_insensitive<'a>(
-  query: &str,
-  contents: &'a str
-) -> Vec<&'a str> {
-  let query = query.to_lowercase();
-  let mut results = Vec::new();
-
-  for line in contents.lines() {
-    if line.to_lowercase().contains(&query) {
-      results.push(line);
-    }
   }
 
+  
   results
 }
